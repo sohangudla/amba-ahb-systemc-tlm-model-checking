@@ -1,0 +1,14 @@
+COMMAND: "C:\Users\locha\Downloads\uppaal-5.0.0-win64\uppaal-5.0.0-win64\bin\verifyta.exe" "-u" "-q" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\model\amba_AHB_1M1S_timed.uppaal.xml" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\comm_N38.q"
+EXIT CODE: 0   WALL TIME: 0.23 s   TIMED OUT: False
+--- stdout ---
+[2K
+Verifying formula 1 at E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\comm_N38.q:1
+[2K -- Formula is NOT satisfied.
+ -- States stored : 6978 states
+ -- States explored : 8153 states
+ -- CPU user time used : 78 ms
+ -- Virtual memory used : 84512 KiB
+ -- Resident memory used : 28800 KiB
+
+--- stderr ---
+

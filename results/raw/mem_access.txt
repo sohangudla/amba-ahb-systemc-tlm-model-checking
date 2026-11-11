@@ -1,0 +1,29 @@
+COMMAND: "C:\Users\locha\Downloads\uppaal-5.0.0-win64\uppaal-5.0.0-win64\bin\verifyta.exe" "-u" "-q" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\model\amba_AHB_1M1S.uppaal.xml" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\mem_access.q"
+EXIT CODE: 0   WALL TIME: 19.12 s   TIMED OUT: False
+--- stdout ---
+[2K
+Verifying formula 1 at E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\mem_access.q:1
+ -- Throughput: 92268 states/sec, Load: 176 states[K
+ -- Throughput: 105314 states/sec, Load: 169 states[K
+ -- Throughput: 105327 states/sec, Load: 155 states[K
+ -- Throughput: 101792 states/sec, Load: 140 states[K
+ -- Throughput: 101709 states/sec, Load: 402 states[K
+ -- Throughput: 97345 states/sec, Load: 222 states[K
+ -- Throughput: 68978 states/sec, Load: 254 states[K
+ -- Throughput: 87593 states/sec, Load: 54 states[K
+ -- Throughput: 81159 states/sec, Load: 339 states[K
+ -- Throughput: 60182 states/sec, Load: 244 states[K
+ -- Throughput: 40671 states/sec, Load: 149 states[K
+ -- Throughput: 51327 states/sec, Load: 122 states[K
+ -- Throughput: 58139 states/sec, Load: 197 states[K
+ -- Throughput: 29387 states/sec, Load: 151 states[K
+ -- Throughput: 19235 states/sec, Load: 119 states[K
+[2K -- Formula is satisfied.
+ -- States stored : 1119525 states
+ -- States explored : 1241387 states
+ -- CPU user time used : 16547 ms
+ -- Virtual memory used : 369080 KiB
+ -- Resident memory used : 170788 KiB
+
+--- stderr ---
+

@@ -1,0 +1,1 @@
+A[] not MEM_ERR_CORRUPTED_MEM

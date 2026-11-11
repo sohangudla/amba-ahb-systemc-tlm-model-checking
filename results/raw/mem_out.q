@@ -1,0 +1,1 @@
+A[] not MEM_ERR_NOT_ENOUGH_MEM

@@ -1,0 +1,1687 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>
+typedef int sc_bv;
+typedef int unsigned_short;
+typedef int sc_uint;
+typedef int unsigned_int;
+typedef int short;
+typedef int uint64;
+typedef int tlm_dmi;
+typedef int sc_int;
+typedef int tlm_sync_enum;
+const tlm_sync_enum TLM_INCOMPLETE_RESPONSE = 16;
+const tlm_sync_enum END_REQ = 8;
+const tlm_sync_enum TLM_WRITE_COMMAND = 16;
+const tlm_sync_enum BEGIN_RESP = 1;
+const tlm_sync_enum TLM_ACCEPTED = 1;
+const tlm_sync_enum BEGIN_REQ = 4;
+const tlm_sync_enum TLM_IGNORE_COMMAND = 32;
+const tlm_sync_enum TLM_GENERIC_ERROR_RESPONSE = 64;
+const tlm_sync_enum END_RESP = 2;
+const tlm_sync_enum TLM_READ_COMMAND = 8;
+const tlm_sync_enum TLM_BURST_ERROR_RESPONSE = 32;
+const tlm_sync_enum TLM_UPDATED = 2;
+const tlm_sync_enum TLM_COMPLETED = 4;
+const tlm_sync_enum TLM_OK_RESPONSE = 32;
+clock global;
+
+///////////////////////////
+// MEMORY ALLOCATION STATES
+///////////////////////////
+
+const int MEM_FREE = 0;
+const int MEM_STATIC_OBJ = 1;
+const int MEM_STATIC_ARR_HEAD = 2;
+const int MEM_STATIC_ARR_TAIL = 3;
+const int MEM_DYN_OBJ = 4;
+const int MEM_DYN_ARR_HEAD = 5;
+const int MEM_DYN_ARR_TAIL = 6;
+const int NULL = -1;
+
+////////////////////////
+// MEMORY RELATED ERRORS
+////////////////////////
+
+bool MEM_ERR_ACCESS_FAIL = false;
+bool MEM_ERR_DOUBLE_FREE = false;
+bool MEM_ERR_INVALID_ARR_DELETE = false;
+bool MEM_ERR_INVALID_OBJ_DELETE = false;
+bool MEM_ERR_DELETE_ON_STATIC_VAR = false;
+bool MEM_ERR_NOT_ENOUGH_MEM = false;
+bool MEM_ERR_CORRUPTED_MEM = false;
+bool MEM_ERR_FRAGMENTED_MEM = false;
+
+
+///////////////////
+// BOOL - globals
+///////////////////
+
+const int BOOL_MEMSIZE = 0;
+typedef int[NULL, BOOL_MEMSIZE-1] bool_addr_ptr;
+const bool DEFAULT_BOOL_VALUE = false;
+int BOOL_FREE_MEM = BOOL_MEMSIZE;
+
+
+///////////////////
+// INT - globals
+///////////////////
+
+const int INT_MEMSIZE = 3;
+typedef int[NULL, INT_MEMSIZE-1] int_addr_ptr;
+const int DEFAULT_INT_VALUE = 0;
+int INT_FREE_MEM = INT_MEMSIZE;
+int[0, 6] intMemState[INT_MEMSIZE];
+int intMem[INT_MEMSIZE];
+bool MEM_ERR_FRAGMENTED_MEM_INT = false;
+bool MEM_ERR_NOT_ENOUGH_MEM_INT = false;
+
+
+///////////////////
+// Global Variable Definition
+///////////////////
+
+bool PEQ_ERR_OUT_OF_ELEMENTS = false;
+bool ERR_ASSERTION_VIOLATION = false;
+bool clk_val;
+bool clk__val;
+int clk_delta;
+int clk_period;
+int_addr_ptr fifo_inst_buffer = NULL;
+int fifo_inst_n;
+int fifo_inst_r_pos;
+int fifo_inst_w_pos;
+int prod_inst_pid;
+chan activate;
+chan deactivate;
+chan updatestart;
+chan updateend;
+broadcast chan initdone;
+broadcast chan deltadelay;
+broadcast chan advancetime;
+int deltacount = 0;
+int readyprocs = 3;
+int updaterequests = 0;
+chan scmodules_initialized;
+broadcast chan dummybchannel;
+chan dummychannel;
+int dummyinteger;
+broadcast chan clk_edge_wait;
+chan clk_edge_notify;
+chan clk_edge_notify_imm;
+int clk_edge_notify_t;
+broadcast chan clk_change_wait;
+chan clk_change_notify;
+chan clk_change_notify_imm;
+int clk_change_notify_t;
+broadcast chan clk_thread0_sensitivechan;
+broadcast chan clk_thread0_timeoutevent_wait;
+chan clk_thread0_timeoutevent_notify;
+chan clk_thread0_timeoutevent_notify_imm;
+int clk_thread0_timeoutevent_notify_t;
+chan clk_thread0_run_ctrl;
+broadcast chan fifo_inst_w_event_wait;
+chan fifo_inst_w_event_notify;
+chan fifo_inst_w_event_notify_imm;
+int fifo_inst_w_event_notify_t;
+broadcast chan fifo_inst_r_event_wait;
+chan fifo_inst_r_event_notify;
+chan fifo_inst_r_event_notify_imm;
+int fifo_inst_r_event_notify_t;
+broadcast chan prod_inst_thread0_sensitivechan;
+broadcast chan prod_inst_thread0_timeoutevent_wait;
+chan prod_inst_thread0_timeoutevent_notify;
+chan prod_inst_thread0_timeoutevent_notify_imm;
+int prod_inst_thread0_timeoutevent_notify_t;
+chan prod_inst_thread0_main_method_ctrl;
+chan prod_inst_thread0_produce_ctrl;
+int prod_inst_thread0_produce_param_c_param;
+int prod_inst_thread0_produce_return;
+chan prod_inst_thread0_fifo_write_ctrl;
+int prod_inst_thread0_fifo_write_param_c;
+broadcast chan cons_inst_thread0_sensitivechan;
+broadcast chan cons_inst_thread0_timeoutevent_wait;
+chan cons_inst_thread0_timeoutevent_notify;
+chan cons_inst_thread0_timeoutevent_notify_imm;
+int cons_inst_thread0_timeoutevent_notify_t;
+chan cons_inst_thread0_main_method_ctrl;
+chan cons_inst_thread0_fifo_read_ctrl;
+int cons_inst_thread0_fifo_read_return;
+chan cons_inst_thread0_consume_ctrl;
+int cons_inst_thread0_consume_param_c_param;
+
+
+///////////////////
+// INT - helper functions
+///////////////////
+
+bool is_free_elem_int(int_addr_ptr pos) {
+	return intMemState[pos] == MEM_FREE;
+}
+
+bool is_obj_elem_int(int_addr_ptr pos) {
+	return intMemState[pos] == MEM_STATIC_OBJ || intMemState[pos] == MEM_DYN_OBJ;
+}
+
+bool is_static_elem_int(int_addr_ptr pos) {
+	return intMemState[pos] == MEM_STATIC_OBJ || intMemState[pos] == MEM_STATIC_ARR_HEAD || intMemState[pos] == MEM_STATIC_ARR_TAIL;
+}
+
+bool is_dynamic_elem_int(int_addr_ptr pos) {
+	return intMemState[pos] == MEM_DYN_OBJ || intMemState[pos] == MEM_DYN_ARR_HEAD || intMemState[pos] == MEM_DYN_ARR_TAIL;
+}
+
+bool is_arr_head_elem_int(int_addr_ptr pos) {
+	return intMemState[pos] == MEM_STATIC_ARR_HEAD || intMemState[pos] == MEM_DYN_ARR_HEAD;
+}
+
+bool is_arr_tail_elem_int(int_addr_ptr pos) {
+	return intMemState[pos] == MEM_STATIC_ARR_TAIL || intMemState[pos] == MEM_DYN_ARR_TAIL;
+}
+
+void check_mem_errors_for_delete_int(int_addr_ptr pos, bool isStatic, bool shouldBeAnArray) {
+	if (pos == NULL) {
+		MEM_ERR_CORRUPTED_MEM = true;
+	} else if (is_free_elem_int(pos)) {
+		MEM_ERR_DOUBLE_FREE = true;
+	} else if (not is_obj_elem_int(pos) &amp;&amp; not is_arr_head_elem_int(pos)) {
+		// something went completely wrong :(
+		// ex: delete somewhere in the middle of an array
+		MEM_ERR_CORRUPTED_MEM = true;
+	} else {
+		if (!isStatic &amp;&amp; is_static_elem_int(pos)) {
+			MEM_ERR_DELETE_ON_STATIC_VAR = true;
+		}
+		if (shouldBeAnArray) {
+			if (not is_arr_head_elem_int(pos)) {
+				MEM_ERR_INVALID_ARR_DELETE = true; // shouldn't have called 'delete []' ?
+			}
+		} else { // delete normal obj
+			if (not is_obj_elem_int(pos)) {
+				MEM_ERR_INVALID_OBJ_DELETE = true;
+			}
+		}
+	}
+}
+
+bool addr_is_in_range_int(int pos) {
+	return pos &gt;= 0 &amp;&amp; pos &lt; INT_MEMSIZE;
+}
+
+bool addr_is_valid_int(int pos) {
+	return addr_is_in_range_int(pos) &amp;&amp; intMemState[pos] != MEM_FREE;
+}
+
+bool is_arr_elem_int(int head, int index) {
+	int i;
+	if (!addr_is_in_range_int(head + index)) {
+		return false;
+	}
+	if (!is_arr_head_elem_int(head)) {
+		return false;
+	}
+	if (index &lt; 0) { // assuming heap/stack arrays grow leftward
+		return false;
+	}
+	for (i = head + 1; i &lt;= head + index; i++) {
+		if (!is_arr_tail_elem_int(i)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
+///////////////////
+// INT - private
+///////////////////
+
+void allocate_and_init_int(int memState, int_addr_ptr pos, int value) {
+	if (pos == NULL) {
+		MEM_ERR_CORRUPTED_MEM = true;
+	} else {
+		intMemState[pos] = memState;
+		intMem[pos] = value;
+        if (memState == MEM_FREE) {
+            INT_FREE_MEM++;
+        } else {
+            INT_FREE_MEM--;
+        }
+	}
+}
+
+void allocate_int(int memState, int_addr_ptr pos) {
+	allocate_and_init_int(memState, pos, DEFAULT_INT_VALUE);
+}
+
+int_addr_ptr find_free_pos_int(int memState) {
+	int_addr_ptr pos = NULL;
+	if (memState == MEM_STATIC_OBJ) { // stack
+		for(pos = 0; pos &lt;= INT_MEMSIZE - 1; pos++) {
+			if (intMemState[pos] == MEM_FREE) {
+				return pos;
+			}
+		}
+	} else if (memState == MEM_DYN_OBJ) { // heap
+		for(pos = INT_MEMSIZE - 1; pos &gt;= 0; pos--) {
+			if (intMemState[pos] == MEM_FREE) {
+				return pos;
+			}
+		}
+	}
+	return NULL;
+}
+
+int_addr_ptr find_free_pos_and_allocate_and_init_int(int memState, int value) {
+	int_addr_ptr pos;
+	if (INT_FREE_MEM == 0) {
+		MEM_ERR_NOT_ENOUGH_MEM = true;
+		MEM_ERR_NOT_ENOUGH_MEM_INT = true;
+		return NULL;
+	}
+	pos = find_free_pos_int(memState);
+	if (pos == NULL) {
+		MEM_ERR_CORRUPTED_MEM = true;
+	} else {
+		allocate_and_init_int(memState, pos, value);
+	}
+	return pos;
+}
+
+int_addr_ptr find_free_pos_and_allocate_int(int memState) {
+	return find_free_pos_and_allocate_and_init_int(memState, DEFAULT_INT_VALUE);
+}
+
+void delete_int(int_addr_ptr pos, bool isStatic) {
+	check_mem_errors_for_delete_int(pos, isStatic, false);
+	allocate_and_init_int(MEM_FREE, pos, DEFAULT_INT_VALUE);
+}
+//////////////////
+// INT - public
+//////////////////
+
+int_addr_ptr allocate_static_int() {
+	return find_free_pos_and_allocate_and_init_int(MEM_STATIC_OBJ, DEFAULT_INT_VALUE);
+}
+
+int_addr_ptr allocate_dynamic_int() {
+	return find_free_pos_and_allocate_and_init_int(MEM_DYN_OBJ, DEFAULT_INT_VALUE);
+}
+
+int_addr_ptr allocate_static_and_init_int(int value) {
+	return find_free_pos_and_allocate_and_init_int(MEM_STATIC_OBJ, value);
+}
+
+int_addr_ptr allocate_dynamic_and_init_int(int value) {
+	return find_free_pos_and_allocate_and_init_int(MEM_DYN_OBJ, value);
+}
+
+void delete_static_int(int_addr_ptr pos) {
+	delete_int(pos, true);
+}
+
+void delete_dynamic_int(int_addr_ptr pos) {
+	delete_int(pos, false);
+}
+
+void empty_stack_int(int_addr_ptr pos) {
+	if (pos != NULL) {
+	    allocate_and_init_int(MEM_FREE, pos, DEFAULT_INT_VALUE);
+	}
+}
+
+
+/////////////////////////
+// INT ARRAY - private
+/////////////////////////
+
+int_addr_ptr find_free_pos_arr_int(int memState, int length) {
+	int count = 0;
+	int_addr_ptr pos = -1;
+	int i = 0;
+	if (memState == MEM_STATIC_ARR_HEAD) {
+		for (i = 0; i &lt;= INT_MEMSIZE - 1; i++) {
+			if (intMemState[i] == MEM_FREE) {
+				if (count == 0) {
+					pos = i;
+				}
+				count++;
+				if (count == length) {
+					return pos;
+				}
+			} else if (is_static_elem_int(i)) {
+				count = 0;
+				pos = NULL;
+			} else {
+				return NULL;
+			}
+		}
+	} else if (memState == MEM_DYN_ARR_HEAD) {
+		for(i = INT_MEMSIZE - 1; i &gt;= 0; i--) {
+			if (intMemState[i] == MEM_FREE) {
+				if (count == 0) {
+					pos = i;
+				}
+				count++;
+				if (count == length) {
+					return pos - length + 1; // return the 'lower' index w.r.t. the memArray; + 1 because count starts at 0
+				}
+			} else if (is_dynamic_elem_int(i)) {
+				count = 0;
+				pos = NULL;
+			} else {
+				return NULL;
+			}
+		}
+	}
+	return NULL;
+}
+
+int_addr_ptr allocate_arr_int(int memState, int length) {
+	int i;
+    int_addr_ptr pos;
+    int tailElemStateType;
+    if (INT_FREE_MEM &lt; length) {
+		MEM_ERR_NOT_ENOUGH_MEM = true;
+		MEM_ERR_NOT_ENOUGH_MEM_INT = true;
+		return NULL;
+	}
+	pos = find_free_pos_arr_int(memState, length);
+	if (pos == NULL) {
+		MEM_ERR_FRAGMENTED_MEM = true;
+		MEM_ERR_FRAGMENTED_MEM_INT = true;
+		return NULL;
+	}
+	if (memState == MEM_STATIC_ARR_HEAD) {
+		tailElemStateType = MEM_STATIC_ARR_TAIL;
+	} else {
+		tailElemStateType = MEM_DYN_ARR_TAIL;
+	}
+	allocate_int(memState, pos); // allocate head
+	for(i = pos + 1; i &lt; (pos + length); i++) {
+		allocate_int(tailElemStateType, i);
+	}
+	return pos;
+}
+
+void delete_arr_int(int_addr_ptr pos, bool isStatic) {
+	int i = pos + 1;
+	check_mem_errors_for_delete_int(pos, isStatic, true);
+	allocate_and_init_int(MEM_FREE, pos, DEFAULT_INT_VALUE);
+	while(i &lt; INT_MEMSIZE &amp;&amp; is_arr_tail_elem_int(i)) {
+		allocate_and_init_int(MEM_FREE, i, DEFAULT_INT_VALUE);
+		i++;
+	}
+}
+
+////////////////////////
+// INT ARRAY - public
+////////////////////////
+
+int_addr_ptr allocate_static_arr_int(int length) {
+	return allocate_arr_int(MEM_STATIC_ARR_HEAD, length);
+}
+
+int_addr_ptr allocate_dynamic_arr_int(int length) {
+	return allocate_arr_int(MEM_DYN_ARR_HEAD, length);
+}
+
+void delete_arr_static_int(int_addr_ptr pos) {
+	delete_arr_int(pos, true);
+}
+
+void delete_arr_dynamic_int(int_addr_ptr pos) {
+	delete_arr_int(pos, false);
+}
+
+void empty_stack_arr_int(int_addr_ptr pos) {
+	int i = pos + 1;
+	if (pos != NULL) {
+		allocate_and_init_int(MEM_FREE, pos, DEFAULT_INT_VALUE);
+		while(i &lt; INT_MEMSIZE &amp;&amp; is_arr_tail_elem_int(i)) {
+			allocate_and_init_int(MEM_FREE, i, DEFAULT_INT_VALUE);
+			i++;
+		}
+	}
+}
+
+void init_arr_elem_int(int_addr_ptr pos, int value) {
+	if (pos == NULL) {
+		MEM_ERR_CORRUPTED_MEM = true;
+	} else {
+		intMem[pos] = value;
+	}
+}
+
+void clk_ctor(const int periodparam, bool &amp;val, bool &amp;_val, int &amp;delta, int &amp;period){
+    period = periodparam;
+    val = true;
+    _val = true;
+}
+ 
+void fifo_inst_ctor(int_addr_ptr &amp;buffer, int &amp;n, int &amp;r_pos, int &amp;w_pos){
+    n = 0;
+    r_pos = 0;
+    w_pos = 0;
+}
+ 
+void prod_inst_ctor(const int i, int &amp;pid){
+    pid = i;
+}
+ 
+void cons_inst_ctor(){
+}
+ 
+void sc_main(){
+    clk_ctor(50, clk_val, clk__val, clk_delta, clk_period);
+    fifo_inst_ctor(fifo_inst_buffer, fifo_inst_n, fifo_inst_r_pos, fifo_inst_w_pos);
+    prod_inst_ctor(127, prod_inst_pid);
+    cons_inst_ctor();
+}
+ 
+</declaration>
+	<template>
+		<name> InitializerTemplate</name>
+		<parameter> </parameter>
+		<declaration>
+</declaration>
+		<location id="id0" x="40" y="80">
+			<urgent/>
+		</location>
+		<location id="id1" x="190" y="80">
+			<committed/>
+		</location>
+		<location id="id2" x="190" y="230">
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="55" y="65">deltadelay?</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="130" y="140">initdone!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+SCEventTemplate</name>
+		<parameter>
+chan &amp;notify_imm, chan &amp;notify, broadcast chan &amp;wait, int &amp;notify_t</parameter>
+		<declaration>
+clock wait_clock;
+int ndelay;
+</declaration>
+		<location id="id3" x="40" y="80">
+			<name x="30" y="50">
+initL</name>
+		</location>
+		<location id="id4" x="190" y="80">
+			<name x="180" y="50">
+notify_requested</name>
+			<committed/>
+		</location>
+		<location id="id5" x="190" y="230">
+			<name x="180" y="200">
+wait_for_delta</name>
+			<label kind="invariant" x="180" y="245">wait_clock &lt;= ndelay</label>
+		</location>
+		<location id="id6" x="40" y="230">
+			<name x="30" y="200">
+notify_now</name>
+			<committed/>
+		</location>
+		<location id="id7" x="340" y="80">
+			<name x="330" y="50">
+advancing_time</name>
+			<committed/>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="55" y="65">notify?</label>
+			<label kind="assignment" x="55" y="80">ndelay = notify_t,
+wait_clock = 0</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: -1, file: , line: -1,
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="130" y="125">wait_clock + notify_t &lt; ndelay</label>
+			<label kind="assignment" x="130" y="155">ndelay = notify_t,
+wait_clock = 0</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: -1, file: , line: -1Update:
+nodeID: -1, file: , line: -1,
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="130" y="140">notify?</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="130" y="125">wait_clock + notify_t &gt;= ndelay</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="55" y="200">ndelay == 0</label>
+			<label kind="synchronisation" x="55" y="215">deltadelay?</label>
+			<label kind="comments" x="55" y="260">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="55" y="200">wait_clock == ndelay &amp;&amp; 
+ndelay != 0</label>
+			<label kind="synchronisation" x="55" y="215">advancetime!</label>
+			<label kind="comments" x="55" y="260">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id7"/>
+			<label kind="guard" x="205" y="125">ndelay != 0</label>
+			<label kind="synchronisation" x="205" y="140">advancetime?</label>
+			<label kind="comments" x="205" y="185">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id5"/>
+			<label kind="guard" x="205" y="125">wait_clock &lt; ndelay</label>
+			<label kind="comments" x="205" y="185">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="guard" x="130" y="125">wait_clock == ndelay</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-20" y="140">wait!</label>
+			<label kind="assignment" x="-20" y="155">wait_clock = 0</label>
+			<label kind="comments" x="-20" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="55" y="215">notify_imm?</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-20" y="140">notify_imm?</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+SCMainTemplate</name>
+		<parameter>
+</parameter>
+		<declaration>
+</declaration>
+		<location id="id8" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+			<urgent/>
+		</location>
+		<location id="id9" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id10" x="190" y="230">
+			<urgent/>
+		</location>
+		<location id="id11" x="40" y="230">
+			<name x="30" y="200">
+scmain_end</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="assignment" x="55" y="80">fifo_inst_buffer = allocate_static_arr_int(3)</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="130" y="125">MEM_ERR_NOT_ENOUGH_MEM == 0</label>
+			<label kind="assignment" x="130" y="155">sc_main()</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: -1, file: , line: -1Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="55" y="215">scmodules_initialized!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+SchedulerTemplate</name>
+		<parameter>
+</parameter>
+		<declaration>
+</declaration>
+		<location id="id12" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+			<urgent/>
+		</location>
+		<location id="id13" x="190" y="80">
+			<name x="180" y="50">
+execute</name>
+			<urgent/>
+		</location>
+		<location id="id14" x="190" y="230">
+			<name x="180" y="200">
+evaluate</name>
+			<urgent/>
+		</location>
+		<location id="id15" x="40" y="230">
+			<name x="30" y="200">
+update</name>
+			<urgent/>
+		</location>
+		<location id="id16" x="340" y="80">
+			<name x="330" y="50">
+updating</name>
+			<urgent/>
+		</location>
+		<location id="id17" x="340" y="230">
+			<name x="330" y="200">
+nextdelta</name>
+			<urgent/>
+		</location>
+		<location id="id18" x="340" y="380">
+			<name x="330" y="350">
+time_progress</name>
+		</location>
+		<location id="id19" x="190" y="380">
+			<urgent/>
+		</location>
+		<init ref="id12"/>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="55" y="140">scmodules_initialized?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="130" y="125">readyprocs &gt; 0</label>
+			<label kind="synchronisation" x="130" y="140">activate!</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="130" y="140">deactivate?</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id15"/>
+			<label kind="guard" x="55" y="200">readyprocs == 0</label>
+			<label kind="assignment" x="55" y="230">deltacount = (deltacount + 1) % 2</label>
+			<label kind="comments" x="55" y="260">Guard:
+nodeID: -1, file: , line: -1Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id19"/>
+			<label kind="guard" x="55" y="275">updaterequests &gt; 0</label>
+			<label kind="comments" x="55" y="335">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="205" y="215">updatestart!</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="130" y="140">updateend?</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id17"/>
+			<label kind="guard" x="130" y="200">updaterequests == 0</label>
+			<label kind="synchronisation" x="130" y="215">deltadelay!</label>
+			<label kind="comments" x="130" y="260">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="guard" x="280" y="275">readyprocs == 0</label>
+			<label kind="comments" x="280" y="335">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id14"/>
+			<label kind="guard" x="205" y="200">readyprocs &gt; 0</label>
+			<label kind="comments" x="205" y="260">Guard:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id14"/>
+			<label kind="synchronisation" x="205" y="290">advancetime?</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+ThreadStarterTemplate</name>
+		<parameter>
+chan &amp;ctrl</parameter>
+		<declaration>
+</declaration>
+		<location id="id20" x="40" y="80">
+			<urgent/>
+		</location>
+		<location id="id21" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id22" x="190" y="230">
+		</location>
+		<location id="id23" x="40" y="230">
+			<urgent/>
+		</location>
+		<location id="id24" x="340" y="80">
+		</location>
+		<init ref="id20"/>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="55" y="65">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="130" y="140">ctrl!</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="55" y="215">ctrl?</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id24"/>
+			<label kind="synchronisation" x="130" y="140">deactivate!</label>
+			<label kind="assignment" x="130" y="155">readyprocs--</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+consumer_consume</name>
+		<parameter>
+chan &amp;consume_ctrl, int &amp;timeoutevent_notify_t, broadcast chan &amp;timeoutevent_wait, chan &amp;timeoutevent_notify, int &amp;consume_param_c_param</parameter>
+		<declaration>
+int c_param;
+int wait_time;
+</declaration>
+		<location id="id25" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id26" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id27" x="190" y="230">
+			<committed/>
+		</location>
+		<location id="id28" x="40" y="230">
+			<urgent/>
+		</location>
+		<location id="id29" x="340" y="80">
+		</location>
+		<location id="id30" x="340" y="230">
+			<urgent/>
+		</location>
+		<init ref="id25"/>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id26"/>
+			<label kind="synchronisation" x="55" y="65">consume_ctrl?</label>
+			<label kind="assignment" x="55" y="80">c_param = consume_param_c_param,
+wait_time = 200</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: -1, file: , line: -1,
+nodeID: 1108, file: consumer.h, line: 14</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id27"/>
+			<label kind="synchronisation" x="130" y="140">deactivate!</label>
+			<label kind="assignment" x="130" y="155">readyprocs--</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id30"/>
+			<label kind="synchronisation" x="130" y="215">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="205" y="140">timeoutevent_notify!</label>
+			<label kind="assignment" x="205" y="155">timeoutevent_notify_t = wait_time</label>
+			<label kind="comments" x="205" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id28"/>
+			<label kind="synchronisation" x="130" y="140">timeoutevent_wait?</label>
+			<label kind="assignment" x="130" y="155">readyprocs++</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="130" y="140">consume_ctrl!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+consumer_main_method</name>
+		<parameter>
+chan &amp;main_method_ctrl, int &amp;fifo_read_return, chan &amp;fifo_read_ctrl, int &amp;consume_param_c_param, broadcast chan &amp;sensitive, chan &amp;consume_ctrl</parameter>
+		<declaration>
+int c;
+</declaration>
+		<location id="id31" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id32" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id33" x="190" y="230">
+			<urgent/>
+		</location>
+		<location id="id34" x="40" y="230">
+			<urgent/>
+		</location>
+		<location id="id35" x="340" y="80">
+		</location>
+		<location id="id36" x="340" y="230">
+			<urgent/>
+		</location>
+		<location id="id37" x="340" y="380">
+		</location>
+		<location id="id38" x="190" y="380">
+			<urgent/>
+		</location>
+		<location id="id39" x="40" y="380">
+		</location>
+		<location id="id40" x="490" y="80">
+			<urgent/>
+		</location>
+		<init ref="id31"/>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="55" y="65">main_method_ctrl?</label>
+			<label kind="assignment" x="55" y="80">c = 0</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: 1214, file: consumer.h, line: 21</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id33"/>
+			<label kind="guard" x="130" y="125">true</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: 1236, file: consumer.h, line: 22</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="205" y="140">deactivate!</label>
+			<label kind="assignment" x="205" y="155">readyprocs--</label>
+			<label kind="comments" x="205" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="130" y="215">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id36"/>
+			<label kind="synchronisation" x="280" y="140">sensitive?</label>
+			<label kind="assignment" x="280" y="155">readyprocs++</label>
+			<label kind="comments" x="280" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id37"/>
+			<label kind="synchronisation" x="130" y="290">fifo_read_ctrl!</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="205" y="365">fifo_read_ctrl?</label>
+			<label kind="assignment" x="205" y="380">c = fifo_read_return</label>
+			<label kind="comments" x="205" y="410">Update:
+nodeID: 1258, file: consumer.h, line: 25</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="55" y="365">consume_ctrl!</label>
+			<label kind="assignment" x="55" y="380">consume_param_c_param = c</label>
+			<label kind="comments" x="55" y="410">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="55" y="215">consume_ctrl?</label>
+			<label kind="assignment" x="55" y="230">consume_param_c_param = DEFAULT_INT_VALUE</label>
+			<label kind="comments" x="55" y="260">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id40"/>
+			<label kind="guard" x="280" y="50">!(true)</label>
+			<label kind="comments" x="280" y="110">Guard:
+nodeID: 1236, file: consumer.h, line: 22</label>
+		</transition>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="205" y="65">main_method_ctrl!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+consumer_thread0_sensitiveTemp</name>
+		<parameter>
+broadcast chan &amp;sensitive, broadcast chan &amp;c_clock</parameter>
+		<declaration>
+</declaration>
+		<location id="id41" x="40" y="80">
+		</location>
+		<location id="id42" x="190" y="80">
+			<committed/>
+		</location>
+		<init ref="id41"/>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id41"/>
+			<label kind="synchronisation" x="55" y="65">sensitive!</label>
+		</transition>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id42"/>
+			<label kind="synchronisation" x="55" y="65">c_clock?</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+myfifo_read</name>
+		<parameter>
+broadcast chan &amp;w_event_wait, chan &amp;r_event_notify_imm, chan &amp;read_ctrl, int &amp;r_pos, int_addr_ptr &amp;buffer, int &amp;n, int &amp;read_return</parameter>
+		<declaration>
+int c;
+</declaration>
+		<location id="id43" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id44" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id45" x="190" y="230">
+			<urgent/>
+		</location>
+		<location id="id46" x="40" y="230">
+		</location>
+		<location id="id47" x="340" y="80">
+			<urgent/>
+		</location>
+		<location id="id48" x="340" y="230">
+			<urgent/>
+		</location>
+		<location id="id49" x="340" y="380">
+			<urgent/>
+		</location>
+		<location id="id50" x="190" y="380">
+			<urgent/>
+		</location>
+		<init ref="id43"/>
+		<transition>
+			<source ref="id43"/>
+			<target ref="id44"/>
+			<label kind="synchronisation" x="55" y="65">read_ctrl?</label>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id45"/>
+			<label kind="guard" x="130" y="125">n == 0</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: 470, file: myfifo.h, line: 41</label>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id46"/>
+			<label kind="synchronisation" x="55" y="215">deactivate!</label>
+			<label kind="assignment" x="55" y="230">readyprocs--</label>
+			<label kind="comments" x="55" y="260">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id48"/>
+			<label kind="synchronisation" x="280" y="140">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id47"/>
+			<label kind="synchronisation" x="130" y="140">w_event_wait?</label>
+			<label kind="assignment" x="130" y="155">readyprocs++</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id48"/>
+			<label kind="guard" x="205" y="125">!(n == 0)</label>
+			<label kind="comments" x="205" y="185">Guard:
+nodeID: 470, file: myfifo.h, line: 41</label>
+		</transition>
+		<transition>
+			<source ref="id48"/>
+			<target ref="id49"/>
+			<label kind="assignment" x="280" y="305">c = intMem[buffer + r_pos],
+n = n - 1,
+r_pos = (r_pos + 1) % 3</label>
+			<label kind="comments" x="280" y="335">Update:
+nodeID: 506, file: myfifo.h, line: 43,
+nodeID: 534, file: myfifo.h, line: 44,
+nodeID: 534, file: myfifo.h, line: 44</label>
+		</transition>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id50"/>
+			<label kind="synchronisation" x="205" y="365">r_event_notify_imm!</label>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id43"/>
+			<label kind="synchronisation" x="55" y="215">read_ctrl!</label>
+			<label kind="assignment" x="55" y="230">read_return = c</label>
+			<label kind="comments" x="55" y="260">Update:
+nodeID: 594, file: myfifo.h, line: 47</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+myfifo_write</name>
+		<parameter>
+chan &amp;w_event_notify_imm, broadcast chan &amp;r_event_wait, int &amp;write_param_c, int_addr_ptr &amp;buffer, int &amp;n, int &amp;w_pos, chan &amp;write_ctrl</parameter>
+		<declaration>
+int c;
+</declaration>
+		<location id="id51" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id52" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id53" x="190" y="230">
+			<urgent/>
+		</location>
+		<location id="id54" x="40" y="230">
+		</location>
+		<location id="id55" x="340" y="80">
+			<urgent/>
+		</location>
+		<location id="id56" x="340" y="230">
+			<urgent/>
+		</location>
+		<location id="id57" x="340" y="380">
+			<urgent/>
+		</location>
+		<location id="id58" x="190" y="380">
+			<urgent/>
+		</location>
+		<init ref="id51"/>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id52"/>
+			<label kind="synchronisation" x="55" y="65">write_ctrl?</label>
+			<label kind="assignment" x="55" y="80">c = write_param_c</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id52"/>
+			<target ref="id53"/>
+			<label kind="guard" x="130" y="125">n == 3</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: 298, file: myfifo.h, line: 30</label>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id54"/>
+			<label kind="synchronisation" x="55" y="215">deactivate!</label>
+			<label kind="assignment" x="55" y="230">readyprocs--</label>
+			<label kind="comments" x="55" y="260">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id55"/>
+			<target ref="id56"/>
+			<label kind="synchronisation" x="280" y="140">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id54"/>
+			<target ref="id55"/>
+			<label kind="synchronisation" x="130" y="140">r_event_wait?</label>
+			<label kind="assignment" x="130" y="155">readyprocs++</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id52"/>
+			<target ref="id56"/>
+			<label kind="guard" x="205" y="125">!(n == 3)</label>
+			<label kind="comments" x="205" y="185">Guard:
+nodeID: 298, file: myfifo.h, line: 30</label>
+		</transition>
+		<transition>
+			<source ref="id56"/>
+			<target ref="id57"/>
+			<label kind="assignment" x="280" y="305">intMem[buffer + w_pos] = c,
+n = n + 1,
+w_pos = (w_pos + 1) % 3</label>
+			<label kind="comments" x="280" y="335">Update:
+nodeID: 344, file: myfifo.h, line: 32,
+nodeID: 362, file: myfifo.h, line: 33,
+nodeID: 362, file: myfifo.h, line: 33</label>
+		</transition>
+		<transition>
+			<source ref="id57"/>
+			<target ref="id58"/>
+			<label kind="synchronisation" x="205" y="365">w_event_notify_imm!</label>
+		</transition>
+		<transition>
+			<source ref="id58"/>
+			<target ref="id51"/>
+			<label kind="synchronisation" x="55" y="215">write_ctrl!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+producer_main_method</name>
+		<parameter>
+int &amp;produce_return, chan &amp;main_method_ctrl, chan &amp;fifo_write_ctrl, int &amp;fifo_write_param_c, broadcast chan &amp;sensitive, int &amp;produce_param_c_param, chan &amp;produce_ctrl</parameter>
+		<declaration>
+int c;
+</declaration>
+		<location id="id59" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id60" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id61" x="190" y="230">
+			<urgent/>
+		</location>
+		<location id="id62" x="40" y="230">
+			<urgent/>
+		</location>
+		<location id="id63" x="340" y="80">
+		</location>
+		<location id="id64" x="340" y="230">
+			<urgent/>
+		</location>
+		<location id="id65" x="340" y="380">
+		</location>
+		<location id="id66" x="190" y="380">
+			<urgent/>
+		</location>
+		<location id="id67" x="40" y="380">
+		</location>
+		<location id="id68" x="490" y="80">
+			<urgent/>
+		</location>
+		<init ref="id59"/>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="55" y="65">main_method_ctrl?</label>
+			<label kind="assignment" x="55" y="80">c = 0</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: 824, file: producer.h, line: 26</label>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id61"/>
+			<label kind="guard" x="130" y="125">true</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: 846, file: producer.h, line: 28</label>
+		</transition>
+		<transition>
+			<source ref="id61"/>
+			<target ref="id63"/>
+			<label kind="synchronisation" x="205" y="140">deactivate!</label>
+			<label kind="assignment" x="205" y="155">readyprocs--</label>
+			<label kind="comments" x="205" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id64"/>
+			<target ref="id62"/>
+			<label kind="synchronisation" x="130" y="215">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id63"/>
+			<target ref="id64"/>
+			<label kind="synchronisation" x="280" y="140">sensitive?</label>
+			<label kind="assignment" x="280" y="155">readyprocs++</label>
+			<label kind="comments" x="280" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id62"/>
+			<target ref="id65"/>
+			<label kind="synchronisation" x="130" y="290">produce_ctrl!</label>
+			<label kind="assignment" x="130" y="305">produce_param_c_param = c</label>
+			<label kind="comments" x="130" y="335">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id65"/>
+			<target ref="id66"/>
+			<label kind="synchronisation" x="205" y="365">produce_ctrl?</label>
+			<label kind="assignment" x="205" y="380">produce_param_c_param = DEFAULT_INT_VALUE,
+c = produce_return</label>
+			<label kind="comments" x="205" y="410">Update:
+nodeID: -1, file: , line: -1,
+nodeID: 868, file: producer.h, line: 31</label>
+		</transition>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id67"/>
+			<label kind="synchronisation" x="55" y="365">fifo_write_ctrl!</label>
+			<label kind="assignment" x="55" y="380">fifo_write_param_c = c</label>
+			<label kind="comments" x="55" y="410">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id67"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="55" y="215">fifo_write_ctrl?</label>
+			<label kind="assignment" x="55" y="230">fifo_write_param_c = DEFAULT_INT_VALUE</label>
+			<label kind="comments" x="55" y="260">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id68"/>
+			<label kind="guard" x="280" y="50">!(true)</label>
+			<label kind="comments" x="280" y="110">Guard:
+nodeID: 846, file: producer.h, line: 28</label>
+		</transition>
+		<transition>
+			<source ref="id68"/>
+			<target ref="id59"/>
+			<label kind="synchronisation" x="205" y="65">main_method_ctrl!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+producer_produce</name>
+		<parameter>
+int &amp;produce_param_c_param, int &amp;produce_return, int &amp;timeoutevent_notify_t, broadcast chan &amp;timeoutevent_wait, chan &amp;produce_ctrl, chan &amp;timeoutevent_notify</parameter>
+		<declaration>
+int c_param;
+int wait_time;
+</declaration>
+		<location id="id69" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id70" x="190" y="80">
+			<urgent/>
+		</location>
+		<location id="id71" x="190" y="230">
+			<committed/>
+		</location>
+		<location id="id72" x="40" y="230">
+			<urgent/>
+		</location>
+		<location id="id73" x="340" y="80">
+		</location>
+		<location id="id74" x="340" y="230">
+			<urgent/>
+		</location>
+		<init ref="id69"/>
+		<transition>
+			<source ref="id69"/>
+			<target ref="id70"/>
+			<label kind="synchronisation" x="55" y="65">produce_ctrl?</label>
+			<label kind="assignment" x="55" y="80">c_param = produce_param_c_param,
+wait_time = 100</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: -1, file: , line: -1,
+nodeID: 706, file: producer.h, line: 18</label>
+		</transition>
+		<transition>
+			<source ref="id70"/>
+			<target ref="id71"/>
+			<label kind="synchronisation" x="130" y="140">deactivate!</label>
+			<label kind="assignment" x="130" y="155">readyprocs--</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id72"/>
+			<target ref="id74"/>
+			<label kind="synchronisation" x="130" y="215">activate?</label>
+			<label kind="assignment" x="130" y="230">c_param = (c_param + 1) % 10</label>
+			<label kind="comments" x="130" y="260">Update:
+nodeID: 752, file: producer.h, line: 20</label>
+		</transition>
+		<transition>
+			<source ref="id71"/>
+			<target ref="id73"/>
+			<label kind="synchronisation" x="205" y="140">timeoutevent_notify!</label>
+			<label kind="assignment" x="205" y="155">timeoutevent_notify_t = wait_time</label>
+			<label kind="comments" x="205" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id73"/>
+			<target ref="id72"/>
+			<label kind="synchronisation" x="130" y="140">timeoutevent_wait?</label>
+			<label kind="assignment" x="130" y="155">readyprocs++</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id74"/>
+			<target ref="id69"/>
+			<label kind="synchronisation" x="130" y="140">produce_ctrl!</label>
+			<label kind="assignment" x="130" y="155">produce_return = c_param</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: 782, file: producer.h, line: 21</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+producer_thread0_sensitiveTemp</name>
+		<parameter>
+broadcast chan &amp;sensitive, broadcast chan &amp;p_clock</parameter>
+		<declaration>
+</declaration>
+		<location id="id75" x="40" y="80">
+		</location>
+		<location id="id76" x="190" y="80">
+			<committed/>
+		</location>
+		<init ref="id75"/>
+		<transition>
+			<source ref="id76"/>
+			<target ref="id75"/>
+			<label kind="synchronisation" x="55" y="65">sensitive!</label>
+		</transition>
+		<transition>
+			<source ref="id75"/>
+			<target ref="id76"/>
+			<label kind="synchronisation" x="55" y="65">p_clock?</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+sc_clock_run</name>
+		<parameter>
+int &amp;edge_notify_t, chan &amp;change_notify, chan &amp;run_ctrl, int &amp;timeoutevent_notify_t, broadcast chan &amp;timeoutevent_wait, chan &amp;edge_notify, bool &amp;val, int &amp;change_notify_t, chan &amp;timeoutevent_notify, int &amp;period</parameter>
+		<declaration>
+int tmp;
+</declaration>
+		<location id="id77" x="40" y="80">
+			<name x="30" y="50">
+init_location</name>
+		</location>
+		<location id="id78" x="190" y="80">
+			<committed/>
+		</location>
+		<location id="id79" x="190" y="230">
+			<committed/>
+		</location>
+		<location id="id80" x="40" y="230">
+			<urgent/>
+		</location>
+		<location id="id81" x="340" y="80">
+			<urgent/>
+		</location>
+		<location id="id82" x="340" y="230">
+			<committed/>
+		</location>
+		<location id="id83" x="340" y="380">
+			<committed/>
+		</location>
+		<location id="id84" x="190" y="380">
+			<urgent/>
+		</location>
+		<location id="id85" x="40" y="380">
+		</location>
+		<location id="id86" x="490" y="80">
+			<committed/>
+		</location>
+		<location id="id87" x="490" y="230">
+			<urgent/>
+		</location>
+		<location id="id88" x="490" y="380">
+			<urgent/>
+		</location>
+		<init ref="id77"/>
+		<transition>
+			<source ref="id77"/>
+			<target ref="id78"/>
+			<label kind="synchronisation" x="55" y="65">run_ctrl?</label>
+			<label kind="assignment" x="55" y="80">tmp = period / 2</label>
+			<label kind="comments" x="55" y="110">Update:
+nodeID: 150, file: sc_clock.cpp, line: 20</label>
+		</transition>
+		<transition>
+			<source ref="id78"/>
+			<target ref="id79"/>
+			<label kind="synchronisation" x="130" y="140">edge_notify!</label>
+			<label kind="assignment" x="130" y="155">edge_notify_t = 0</label>
+			<label kind="comments" x="130" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id79"/>
+			<target ref="id80"/>
+			<label kind="synchronisation" x="55" y="215">change_notify!</label>
+			<label kind="assignment" x="55" y="230">change_notify_t = 0</label>
+			<label kind="comments" x="55" y="260">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id80"/>
+			<target ref="id81"/>
+			<label kind="guard" x="130" y="125">true</label>
+			<label kind="comments" x="130" y="185">Guard:
+nodeID: 204, file: sc_clock.cpp, line: 23</label>
+		</transition>
+		<transition>
+			<source ref="id81"/>
+			<target ref="id83"/>
+			<label kind="synchronisation" x="280" y="215">deactivate!</label>
+			<label kind="assignment" x="280" y="230">readyprocs--</label>
+			<label kind="comments" x="280" y="260">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id84"/>
+			<target ref="id82"/>
+			<label kind="synchronisation" x="205" y="290">activate?</label>
+		</transition>
+		<transition>
+			<source ref="id83"/>
+			<target ref="id85"/>
+			<label kind="synchronisation" x="130" y="365">timeoutevent_notify!</label>
+			<label kind="assignment" x="130" y="380">timeoutevent_notify_t = tmp</label>
+			<label kind="comments" x="130" y="410">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id85"/>
+			<target ref="id84"/>
+			<label kind="synchronisation" x="55" y="365">timeoutevent_wait?</label>
+			<label kind="assignment" x="55" y="380">readyprocs++</label>
+			<label kind="comments" x="55" y="410">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id82"/>
+			<target ref="id86"/>
+			<label kind="synchronisation" x="355" y="140">edge_notify!</label>
+			<label kind="assignment" x="355" y="155">edge_notify_t = 0</label>
+			<label kind="comments" x="355" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id86"/>
+			<target ref="id87"/>
+			<label kind="synchronisation" x="430" y="140">change_notify!</label>
+			<label kind="assignment" x="430" y="155">change_notify_t = 0</label>
+			<label kind="comments" x="430" y="185">Update:
+nodeID: -1, file: , line: -1</label>
+		</transition>
+		<transition>
+			<source ref="id87"/>
+			<target ref="id80"/>
+			<label kind="assignment" x="205" y="230">val = !val</label>
+			<label kind="comments" x="205" y="260">Update:
+nodeID: 264, file: sc_clock.cpp, line: 27</label>
+		</transition>
+		<transition>
+			<source ref="id80"/>
+			<target ref="id88"/>
+			<label kind="guard" x="205" y="275">!(true)</label>
+			<label kind="comments" x="205" y="335">Guard:
+nodeID: 204, file: sc_clock.cpp, line: 23</label>
+		</transition>
+		<transition>
+			<source ref="id88"/>
+			<target ref="id77"/>
+			<label kind="synchronisation" x="205" y="215">run_ctrl!</label>
+		</transition>
+	</template>
+	<template>
+		<name>
+sc_clock_thread0_sensitiveTemp</name>
+		<parameter>
+broadcast chan &amp;sensitive</parameter>
+		<declaration>
+</declaration>
+		<location id="id89" x="40" y="80">
+		</location>
+		<location id="id90" x="190" y="80">
+			<committed/>
+		</location>
+		<init ref="id89"/>
+		<transition>
+			<source ref="id90"/>
+			<target ref="id89"/>
+			<label kind="synchronisation" x="55" y="65">sensitive!</label>
+		</transition>
+	</template>
+	<system>
+clk_change = SCEventTemplate(clk_change_notify_imm, clk_change_notify, clk_change_wait, clk_change_notify_t);
+clk_edge = SCEventTemplate(clk_edge_notify_imm, clk_edge_notify, clk_edge_wait, clk_edge_notify_t);
+clk_thread0_sc_clock_run = sc_clock_run(clk_edge_notify_t, clk_change_notify, clk_thread0_run_ctrl, clk_thread0_timeoutevent_notify_t, clk_thread0_timeoutevent_wait, clk_edge_notify, clk_val, clk_change_notify_t, clk_thread0_timeoutevent_notify, clk_period);
+clk_thread0_sensitive = sc_clock_thread0_sensitiveTemp(clk_thread0_sensitivechan);
+clk_thread0_starter = ThreadStarterTemplate(clk_thread0_run_ctrl);
+clk_thread0_timeoutevent = SCEventTemplate(clk_thread0_timeoutevent_notify_imm, clk_thread0_timeoutevent_notify, clk_thread0_timeoutevent_wait, clk_thread0_timeoutevent_notify_t);
+cons_inst_thread0_consumer_consume = consumer_consume(cons_inst_thread0_consume_ctrl, cons_inst_thread0_timeoutevent_notify_t, cons_inst_thread0_timeoutevent_wait, cons_inst_thread0_timeoutevent_notify, cons_inst_thread0_consume_param_c_param);
+cons_inst_thread0_consumer_main_method = consumer_main_method(cons_inst_thread0_main_method_ctrl, cons_inst_thread0_fifo_read_return, cons_inst_thread0_fifo_read_ctrl, cons_inst_thread0_consume_param_c_param, cons_inst_thread0_sensitivechan, cons_inst_thread0_consume_ctrl);
+cons_inst_thread0_fifo_myfifo_read = myfifo_read(fifo_inst_w_event_wait, fifo_inst_r_event_notify_imm, cons_inst_thread0_fifo_read_ctrl, fifo_inst_r_pos, fifo_inst_buffer, fifo_inst_n, cons_inst_thread0_fifo_read_return);
+cons_inst_thread0_sensitive = consumer_thread0_sensitiveTemp(cons_inst_thread0_sensitivechan, clk_change_wait);
+cons_inst_thread0_starter = ThreadStarterTemplate(cons_inst_thread0_main_method_ctrl);
+cons_inst_thread0_timeoutevent = SCEventTemplate(cons_inst_thread0_timeoutevent_notify_imm, cons_inst_thread0_timeoutevent_notify, cons_inst_thread0_timeoutevent_wait, cons_inst_thread0_timeoutevent_notify_t);
+fifo_inst_r_event = SCEventTemplate(fifo_inst_r_event_notify_imm, fifo_inst_r_event_notify, fifo_inst_r_event_wait, fifo_inst_r_event_notify_t);
+fifo_inst_w_event = SCEventTemplate(fifo_inst_w_event_notify_imm, fifo_inst_w_event_notify, fifo_inst_w_event_wait, fifo_inst_w_event_notify_t);
+initialization = InitializerTemplate();
+prod_inst_thread0_fifo_myfifo_write = myfifo_write(fifo_inst_w_event_notify_imm, fifo_inst_r_event_wait, prod_inst_thread0_fifo_write_param_c, fifo_inst_buffer, fifo_inst_n, fifo_inst_w_pos, prod_inst_thread0_fifo_write_ctrl);
+prod_inst_thread0_producer_main_method = producer_main_method(prod_inst_thread0_produce_return, prod_inst_thread0_main_method_ctrl, prod_inst_thread0_fifo_write_ctrl, prod_inst_thread0_fifo_write_param_c, prod_inst_thread0_sensitivechan, prod_inst_thread0_produce_param_c_param, prod_inst_thread0_produce_ctrl);
+prod_inst_thread0_producer_produce = producer_produce(prod_inst_thread0_produce_param_c_param, prod_inst_thread0_produce_return, prod_inst_thread0_timeoutevent_notify_t, prod_inst_thread0_timeoutevent_wait, prod_inst_thread0_produce_ctrl, prod_inst_thread0_timeoutevent_notify);
+prod_inst_thread0_sensitive = producer_thread0_sensitiveTemp(prod_inst_thread0_sensitivechan, clk_change_wait);
+prod_inst_thread0_starter = ThreadStarterTemplate(prod_inst_thread0_main_method_ctrl);
+prod_inst_thread0_timeoutevent = SCEventTemplate(prod_inst_thread0_timeoutevent_notify_imm, prod_inst_thread0_timeoutevent_notify, prod_inst_thread0_timeoutevent_wait, prod_inst_thread0_timeoutevent_notify_t);
+scheduler = SchedulerTemplate();
+scmain = SCMainTemplate();
+
+
+system clk_change,
+clk_edge,
+clk_thread0_sc_clock_run,
+clk_thread0_sensitive,
+clk_thread0_starter,
+clk_thread0_timeoutevent,
+cons_inst_thread0_consumer_consume,
+cons_inst_thread0_consumer_main_method,
+cons_inst_thread0_fifo_myfifo_read,
+cons_inst_thread0_sensitive,
+cons_inst_thread0_starter,
+cons_inst_thread0_timeoutevent,
+fifo_inst_r_event,
+fifo_inst_w_event,
+initialization,
+prod_inst_thread0_fifo_myfifo_write,
+prod_inst_thread0_producer_main_method,
+prod_inst_thread0_producer_produce,
+prod_inst_thread0_sensitive,
+prod_inst_thread0_starter,
+prod_inst_thread0_timeoutevent,
+scheduler,
+scmain;</system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

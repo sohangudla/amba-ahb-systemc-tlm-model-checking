@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UPPAAL Screenshots</title>
+<style>
+  :root { --ink:#111; --muted:#555; --ok:#116329; --bad:#a40e26; --rule:#ccc; }
+  body { font-family:"Times New Roman", Times, serif; color:var(--ink); background:#fff; max-width:8.3in; margin:0 auto; padding:0.5in 0.6in; font-size:11pt; line-height:1.35; }
+  h1 { font-size:18pt; font-weight:normal; text-align:center; margin:0 0 4pt; }
+  .sub { text-align:center; color:var(--muted); margin-bottom:6pt; }
+  .authors { text-align:center; margin-bottom:14pt; }
+  h2 { font-size:12pt; font-variant:small-caps; letter-spacing:.04em; border-bottom:1px solid var(--rule); padding-bottom:2pt; margin:18pt 0 8pt; }
+  figure { margin:0 0 14pt; break-inside:avoid; page-break-inside:avoid; }
+  figure img { width:100%; height:auto; border:1px solid var(--rule); display:block; }
+  figure img.small { width:auto; max-width:100%; }
+  figcaption { font-size:9.5pt; margin-top:4pt; }
+  figcaption b { font-weight:bold; }
+  .ok { color:var(--ok); font-weight:bold; } .bad { color:var(--bad); font-weight:bold; }
+  .row { display:flex; flex-wrap:wrap; gap:8pt; align-items:flex-start; }
+  .row img { border:1px solid var(--rule); }
+  table { border-collapse:collapse; width:100%; font-size:9.5pt; margin:6pt 0 10pt; }
+  th, td { border:1px solid var(--rule); padding:3pt 5pt; text-align:left; }
+  th { background:#f4f4f4; }
+  code { font-family:Consolas, monospace; font-size:9pt; }
+  @media print { body { padding:0; max-width:none; } @page { size:A4; margin:0.6in 0.55in; } h2 { break-after:avoid; } }
+</style>
+</head>
+<body>
+<h1>UPPAAL Verification Screenshots &mdash; 1M1S AMBA AHB</h1>
+<div class="sub">23ECE337 System on Chip &middot; companion to <i>1M1S_Report.pdf</i> &middot; UPPAAL 5.0.0 (academic licence)</div>
+<div class="authors">C. Deepthi Sree (BL.EN.U4ECE23107), G. Sohan (BL.EN.U4ECE23117), K. Lochana Reddy (BL.EN.U4ECE23127)</div>
+
+<table>
+<tr><th>Part</th><th>Model opened in UPPAAL</th><th>Query file imported</th><th>Figures</th></tr>
+<tr><td>A. Model</td><td><code>model/demo_view/amba_AHB_1M1S_clean.uppaal.xml</code></td><td>&mdash;</td><td>1&ndash;4</td></tr>
+<tr><td>B. Paper properties</td><td><code>model/demo_view/amba_AHB_1M1S_clean.uppaal.xml</code></td><td><code>queries/demo_view/1M1S_QUERIES.q</code></td><td>5&ndash;6</td></tr>
+<tr><td>C. Communication in time</td><td><code>model/demo_view/amba_AHB_1M1S_timed_clean.uppaal.xml</code></td><td><code>queries/demo_view/1M1S_TIMED_QUERIES.q</code></td><td>7&ndash;9</td></tr>
+<tr><td>D. Bug study</td><td><code>model/demo_view/amba_AHB_1M1S_timed_noreset_clean.uppaal.xml</code></td><td><code>queries/demo_view/BUG_STUDY_NORESET.q</code></td><td>10&ndash;16</td></tr>
+</table>
+<p style="font-size:9.5pt;color:#555">The demo copies differ from the models used for the report only in two cosmetic ways: the source-line comment boxes are removed, and "$" in names is written "__" because the UPPAAL 5.0 GUI cannot handle "$". They give the same verification results (checked with verifyta).</p>
+
+<h2>A. The 1M1S model in the UPPAAL editor</h2>
+<figure><img src="01_model_editor.png" alt="UPPAAL editor with the 1M1S model">
+<figcaption><b>Fig. 1.</b> The 1M1S model opened in UPPAAL 5.0.0. The left panel lists the 44 templates: SystemC scheduler and processes, bus (<code>ahb_simple_bus</code>), memory slave (<code>ahb_simple_mem</code>), PEQ automata and master adapter.</figcaption></figure>
+<figure><img src="02_peq_element.png" alt="peq_element automaton">
+<figcaption><b>Fig. 2.</b> <code>peq_element</code>: the PEQ notification automaton with local clock <code>c</code> and invariant <code>c &le; delay</code> (paper Fig. 4). It stores the payload and phase, waits until <code>c == delay</code>, then signals the scheduler. The <code>mem_access_fail</code> branches are pointer-safety checks.</figcaption></figure>
+<div class="row">
+<figure style="flex:1 1 45%"><img src="03_peq_fetch.png" alt="peq_fetch automaton">
+<figcaption><b>Fig. 3.</b> <code>peq_fetch</code>: the callback invocation automaton (paper Fig. 5).</figcaption></figure>
+<figure style="flex:1 1 50%"><img src="04_arbiter.png" alt="arbiter automaton">
+<figcaption><b>Fig. 4.</b> <code>ahb_simple_bus__arbitrate</code>: grants the bus to a requesting master only when <code>m_InService_Register == 0</code>.</figcaption></figure>
+</div>
+
+<h2>B. Paper properties 1 and 3 on the 1M1S model</h2>
+<figure><img src="05_deadlock_green.png" alt="Deadlock freedom satisfied">
+<figcaption><b>Fig. 5.</b> <code>A[] not deadlock</code>: <span class="ok">Property is satisfied</span> (13.7 s in the GUI). The command-line run explored 1,241,387 states; the paper reports 74,345.</figcaption></figure>
+<figure><img src="06_all_8_green.png" alt="All 8 queries satisfied">
+<figcaption><b>Fig. 6.</b> All eight 1M1S queries <span class="ok">satisfied</span>: deadlock freedom; bus grant to M1 as a leads-to property (<code>AHB_M1__m_bus_req_pending --&gt; AHB_M1__m_bus_granted</code>); reachability of a grant; the arbiter never grants the unused master-2 slot and its register stays &le; 1; and no memory errors.</figcaption></figure>
+
+<h2>C. Paper property 4: communication in time</h2>
+<figure><img src="07_comm_x40_green.png" alt="x <= 40 satisfied">
+<figcaption><b>Fig. 7.</b> <code>A[] M1_isCommunicating imply x &le; 40</code>: <span class="ok">Property is satisfied</span> (20.5 s). Clock <code>x</code> is reset at every bus grant, as in the paper.</figcaption></figure>
+<figure><img src="08_comm_x39_red.png" alt="x <= 39 not satisfied">
+<figcaption><b>Fig. 8.</b> <code>x &le; 39</code> is <span class="bad">not satisfied</span> while <code>x &le; 40</code> is satisfied, so N = 40 time units (2 clock periods of 20) is the smallest bound.</figcaption></figure>
+<figure><img src="09_timed_all_checks.png" alt="Timed model checks">
+<figcaption><b>Fig. 9.</b> All checks on the timed model. Adding the clock does not introduce a deadlock, communication does start, and with the <code>m_txn_count</code> reset in place every started transfer completes (<code>M1_isCommunicating --&gt; !M1_isCommunicating</code>, <span class="ok">satisfied</span>).</figcaption></figure>
+
+<h2>D. Bug study: the missing <code>m_txn_count</code> reset</h2>
+<figure><img src="10_bug_red.png" alt="Bug study results">
+<figcaption><b>Fig. 10.</b> With the reset removed: <code>A[] not deadlock</code> is still <span class="ok">satisfied</span>, but <code>M1_isCommunicating --&gt; !M1_isCommunicating</code> is <span class="bad">not satisfied</span>. The bug shows up as a transfer that never finishes, not as a deadlock.</figcaption></figure>
+<figure><img src="11_simulator_trace.png" alt="Counterexample in the simulator">
+<figcaption><b>Fig. 11.</b> The counterexample loaded into the Symbolic Simulator: the simulation trace (left), the variable values (middle) and the current location of each automaton in red (right).</figcaption></figure>
+<figure><img src="12_trace_globals.png" alt="Global variables in the trace">
+<figcaption><b>Fig. 12.</b> Global variables at the end of the counterexample. All memory-error flags are 0, and <code>clk__period = 20</code>.</figcaption></figure>
+<div class="row">
+<img class="small" src="13_txn_count_3.png" alt="m_txn_count = 3">
+<img class="small" src="14_data_count_3.png" alt="m_data_count = 3">
+<img class="small" src="15_bus_granted_1.png" alt="m_bus_granted = 1">
+<img class="small" src="16_isCommunicating_1.png" alt="M1_isCommunicating = 1">
+</div>
+<figure><figcaption><b>Figs. 13&ndash;16.</b> Key values in the counterexample: <code>AHB_M1__m_data_count = 3</code> (all three beats transferred), but <code>AHB_M1__m_txn_count = 3</code> is never reset to 0, the master still holds the bus (<code>m_bus_granted = 1</code>) and <code>M1_isCommunicating = 1</code> forever. This is the missing-reset bug described in Section VI-B of the paper.</figcaption></figure>
+</body>
+</html>

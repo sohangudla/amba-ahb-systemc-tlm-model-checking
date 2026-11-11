@@ -1,0 +1,86 @@
+1M1S AMBA AHB VERIFICATION - EVALUATION DEMO GUIDE
+====================================================
+
+Before the demo
+---------------
+- Run "python tools/run_all.py" once (see README.md) so that results\results.md and
+  report\1M1S_Report.html contain real numbers. Only quote numbers from those files.
+- Open results\results.md during the demo as your reference sheet.
+- Double-click LAUNCH_UPPAAL.bat (it reads the UPPAAL folder from uppaal_path.txt).
+
+STEP 1 - Show the model
+-----------------------
+1. File > Open System > model\demo_view\amba_AHB_1M1S_clean.uppaal.xml
+   (same model without the grey "nodeID / line" comment boxes, so the diagrams are readable;
+   it gives exactly the same results: 1,241,387 states explored for A[] not deadlock.
+   In the demo copies every "$" in names is written "__" (e.g. AHB_M1__m_bus_granted),
+   because the UPPAAL 5.0 GUI cannot handle "$" in template names. Use the queries in
+   queries\demo_view\ with these copies.)
+2. Editor tab: show these templates
+   - peq_element$data   : PEQ notification automaton with local clock c (paper Fig. 4)
+   - peq_fetch$data     : callback invocation automaton (paper Fig. 5)
+   - ahb_simple_bus$arbitrate : bus arbiter
+3. Say: "This model was reduced by hand from the 2M2S model. The bus still has two master
+   slots, but only master 1 exists, so slot 2 is never used."
+
+STEP 2 - Deadlock freedom (paper property 1)
+--------------------------------------------
+1. Verifier tab > File > Import Queries... > queries\demo_view\1M1S_QUERIES.q
+2. Select "A[] not deadlock" and click Check. It takes some seconds; wait for the light.
+3. Say: "The paper reports 74,345 states for 1M1S. Our model explores <number from
+   results.md>. We report both and explain the difference in the report; we did not tune
+   the model to match."
+
+STEP 3 - Bus grant to M1 (paper property 3)
+-------------------------------------------
+1. Select "AHB_M1__m_bus_req_pending --> AHB_M1__m_bus_granted" and click Check.
+2. Say: "This is a leads-to property: whenever master 1 requests the bus it is eventually
+   granted. The E<> query below it only shows that one such run exists, which is weaker."
+   The time shown is how long UPPAAL took to check, not how long the bus takes to grant.
+
+STEP 4 - Communication in time (paper property 4)
+-------------------------------------------------
+1. File > Open System > model\demo_view\amba_AHB_1M1S_timed_clean.uppaal.xml
+2. File > Import Queries... > queries\demo_view\1M1S_TIMED_QUERIES.q (contains the bound N = 40).
+3. Check "A[] M1_isCommunicating imply x <= N".
+4. Say: "As in the paper, clock x is reset whenever the master is granted the bus. N is the
+   smallest bound that holds: run_all.py also showed that N-1 fails." Give N in time units
+   and in clock periods (1 period = 20 time units).
+
+STEP 5 - Not-applicable properties
+----------------------------------
+"Only one master granted" and "bus granted to M2" need a second master, so they do not
+apply to 1M1S. As an extra check, "A[] AHB_Bus__m_InService_Register != 2" shows that the
+arbiter never grants the unused master-2 slot.
+
+STEP 6 - Bug study (only if asked)
+----------------------------------
+1. Open model\demo_view\amba_AHB_1M1S_timed_noreset_clean.uppaal.xml, then File > Import Queries... > queries\demo_view\BUG_STUDY_NORESET.q.
+2. Explain from results.md what happens without the m_txn_count reset: compare
+   "A[] not deadlock" with "M1_isCommunicating --> !M1_isCommunicating".
+3. Do not claim it reproduces the paper's exact split-transaction scenario: our model has
+   no AMBA SPLIT response.
+
+STEP 7 - FIFO toolchain check (only if asked)
+---------------------------------------------
+Open model\test_fifo.uppaal.xml, File > Import Queries... > queries\FIFO_QUERIES.q, check all three.
+
+If asked why UPPAAL 4.1.26-1 is not used
+----------------------------------------
+"It stopped before verifying anything because its start-up check failed with an HTTP 301
+error, so we installed a current version and re-ran everything on it."
+
+
+If asked how N = 40 is measured
+-------------------------------
+"As in the paper, clock x is reset at every bus grant, so 40 time units (2 clock periods) is
+the longest time from the latest grant to the end of the transaction. It is not the length
+of the whole transfer from its first grant; measuring from another point, such as the start
+of b_transport, gives a different bound. We follow the paper's definition."
+
+If asked where the reset is in the SystemC code
+-----------------------------------------------
+"m_txn_count = 0 is at lines 120 (after a write) and 154 (after a read) of
+tlm2_master_to_ahb.cpp in the STATE-2.1 amba_AHB example. The UPPAAL model merges each
+clean-up block into one update annotated with lines 116 and 150."
+(To show it: open systemc_source\tlm2_master_to_ahb.cpp in Notepad and press Ctrl+G, 120.)

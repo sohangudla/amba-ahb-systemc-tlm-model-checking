@@ -1,0 +1,19 @@
+UPPAAL verifyta log - 2M2S model (amba_AHB.uppaal.xml)
+Run on: 2026-11-04 11:00
+UPPAAL 5.0.0 (rev. 714BA9DB36F49691), June 2023
+Command: verifyta -u -q amba_AHB.uppaal.xml 2M2S_GRANT_QUERIES.q
+
+Verifying formula 1 at 2M2S_GRANT_QUERIES.q:2
+ -- Formula is satisfied.
+ -- States stored : 8466 states
+ -- States explored : 8871 states
+ -- CPU user time used : 172 ms
+ -- Virtual memory used : 88584 KiB
+ -- Resident memory used : 31068 KiB
+Verifying formula 2 at 2M2S_GRANT_QUERIES.q:5
+ -- Formula is satisfied.
+ -- States stored : 70112 states
+ -- States explored : 77322 states
+ -- CPU user time used : 1484 ms
+ -- Virtual memory used : 105448 KiB
+ -- Resident memory used : 39740 KiB

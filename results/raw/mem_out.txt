@@ -1,0 +1,55 @@
+COMMAND: "C:\Users\locha\Downloads\uppaal-5.0.0-win64\uppaal-5.0.0-win64\bin\verifyta.exe" "-u" "-q" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\model\amba_AHB_1M1S.uppaal.xml" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\mem_out.q"
+EXIT CODE: 0   WALL TIME: 49.14 s   TIMED OUT: False
+--- stdout ---
+[2K
+Verifying formula 1 at E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\mem_out.q:1
+ -- Throughput: 98924 states/sec, Load: 240 states[K
+ -- Throughput: 102788 states/sec, Load: 150 states[K
+ -- Throughput: 73827 states/sec, Load: 165 states[K
+ -- Throughput: 23336 states/sec, Load: 132 states[K
+ -- Throughput: 22768 states/sec, Load: 56 states[K
+ -- Throughput: 23134 states/sec, Load: 219 states[K
+ -- Throughput: 23157 states/sec, Load: 315 states[K
+ -- Throughput: 18451 states/sec, Load: 377 states[K
+ -- Throughput: 20283 states/sec, Load: 273 states[K
+ -- Throughput: 23154 states/sec, Load: 408 states[K
+ -- Throughput: 23136 states/sec, Load: 249 states[K
+ -- Throughput: 23219 states/sec, Load: 124 states[K
+ -- Throughput: 13419 states/sec, Load: 135 states[K
+ -- Throughput: 34705 states/sec, Load: 180 states[K
+ -- Throughput: 20908 states/sec, Load: 183 states[K
+ -- Throughput: 26189 states/sec, Load: 144 states[K
+ -- Throughput: 19342 states/sec, Load: 167 states[K
+ -- Throughput: 23725 states/sec, Load: 237 states[K
+ -- Throughput: 16600 states/sec, Load: 208 states[K
+ -- Throughput: 17901 states/sec, Load: 177 states[K
+ -- Throughput: 19410 states/sec, Load: 85 states[K
+ -- Throughput: 20093 states/sec, Load: 125 states[K
+ -- Throughput: 20155 states/sec, Load: 238 states[K
+ -- Throughput: 20649 states/sec, Load: 310 states[K
+ -- Throughput: 21010 states/sec, Load: 333 states[K
+ -- Throughput: 18887 states/sec, Load: 360 states[K
+ -- Throughput: 18882 states/sec, Load: 387 states[K
+ -- Throughput: 21938 states/sec, Load: 549 states[K
+ -- Throughput: 20119 states/sec, Load: 328 states[K
+ -- Throughput: 19283 states/sec, Load: 147 states[K
+ -- Throughput: 20632 states/sec, Load: 160 states[K
+ -- Throughput: 15479 states/sec, Load: 159 states[K
+ -- Throughput: 20769 states/sec, Load: 164 states[K
+ -- Throughput: 20886 states/sec, Load: 169 states[K
+ -- Throughput: 22558 states/sec, Load: 197 states[K
+ -- Throughput: 19792 states/sec, Load: 106 states[K
+ -- Throughput: 20563 states/sec, Load: 110 states[K
+ -- Throughput: 17246 states/sec, Load: 109 states[K
+ -- Throughput: 19385 states/sec, Load: 161 states[K
+ -- Throughput: 20074 states/sec, Load: 185 states[K
+ -- Throughput: 18811 states/sec, Load: 130 states[K
+[2K -- Formula is satisfied.
+ -- States stored : 1119525 states
+ -- States explored : 1241387 states
+ -- CPU user time used : 42375 ms
+ -- Virtual memory used : 368988 KiB
+ -- Resident memory used : 170720 KiB
+
+--- stderr ---
+

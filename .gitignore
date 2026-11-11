@@ -1,0 +1,10 @@
+.Xil/
+*.jou
+*.vcd
+*.vvp
+*.wdb
+*.dcp
+xsim.dir/
+__pycache__/
+~$*
+uppaal_path.txt

@@ -1,0 +1,26 @@
+COMMAND: "C:\Users\locha\Downloads\uppaal-5.0.0-win64\uppaal-5.0.0-win64\bin\verifyta.exe" "-u" "-q" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\model\amba_AHB_1M1S.uppaal.xml" "E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\m2_never.q"
+EXIT CODE: 0   WALL TIME: 14.07 s   TIMED OUT: False
+--- stdout ---
+[2K
+Verifying formula 1 at E:\AMRITA\YEAR 4\SEM 7\SOC PROJECT\1M1S_Final\results\raw\m2_never.q:1
+ -- Throughput: 112684 states/sec, Load: 216 states[K
+ -- Throughput: 117757 states/sec, Load: 115 states[K
+ -- Throughput: 109056 states/sec, Load: 172 states[K
+ -- Throughput: 96888 states/sec, Load: 288 states[K
+ -- Throughput: 74431 states/sec, Load: 137 states[K
+ -- Throughput: 82082 states/sec, Load: 229 states[K
+ -- Throughput: 106610 states/sec, Load: 174 states[K
+ -- Throughput: 99808 states/sec, Load: 324 states[K
+ -- Throughput: 84521 states/sec, Load: 457 states[K
+ -- Throughput: 65613 states/sec, Load: 119 states[K
+ -- Throughput: 92755 states/sec, Load: 160 states[K
+ -- Throughput: 66008 states/sec, Load: 143 states[K
+[2K -- Formula is satisfied.
+ -- States stored : 1119525 states
+ -- States explored : 1241387 states
+ -- CPU user time used : 12781 ms
+ -- Virtual memory used : 369076 KiB
+ -- Resident memory used : 170780 KiB
+
+--- stderr ---
+
